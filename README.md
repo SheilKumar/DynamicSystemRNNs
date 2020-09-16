@@ -5,9 +5,8 @@ The aim of this project is to use RNN's (Reccurent Neural Networks) to understan
 ## Software Used 
 
 * Python 
-    - Keras 
-    - Tensor Flow 
-* [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com)
+    - Tensorflow 
+* Google Colab 
 
 
 ## Resources
