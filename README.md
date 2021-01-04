@@ -42,7 +42,7 @@ history = lstm_model.fit(x_train,y_train, epochs=30, validation_data=(x_test,y_t
 * num_features = 3 (x,y,z)
 * LSTM_units = 256 (But can be changed in the future)
 
-* LSTM Parameters = $4\cdot(\text{LSTM_units})\cdot(\text{LSTM_units}+\text{num_features}+1))=4(256(256+3+3))=266240$
+* LSTM Parameters = $ 4\cdot(\text{LSTM_units})\cdot(\text{LSTM_units}+\text{num_features}+1))=4(256(256+3+3))=266240 $
 
 
 ## Results 
