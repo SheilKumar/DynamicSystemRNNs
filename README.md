@@ -22,25 +22,25 @@ lstm_model = tf.keras.models.Sequential([
 
 The network is currently given 12,800 individual points to be trained. 
 
-## Network Architecture 
-
+## Training Parameters 
 ```python
-lstm_model = tf.keras.models.Sequential([
-    tf.keras.layers.LSTM(256, return_sequences=True),
-    # Shape => [batch, time, features]
-    # Shape [batch, time, features] => [batch, time, lstm_units]
-    tf.keras.layers.Dense(units=3)
-])
+lstm_model.compile(loss=tf.losses.MeanSquaredError(),
+              optimizer=tf.optimizers.Adam(),
+              metrics=[tf.metrics.MeanAbsoluteError()])
+```
+```python 
+history = lstm_model.fit(x_train,y_train, epochs=30, validation_data=(x_test,y_test))
 ```
 
+* Loss Function: Mean Squared Error
+* Optimizer = Adam 
+* Metric = Mean Absolute Error 
+* Epochs: 30 
 
-* Cell type: LSTM
-* RNN Units: 256 
-* Dense Layer: 3 Neurons 
-* Input Shape: \[X,1,3\] X=12,800 during training 
-* Output Shape: \[X,1,3\]
+## Total Parameters 
 
-The network is currently given 12,800 individual points to be trained. 
+* num_features = 3 (x,y,z)
+* LSTM_units = 256 (But can be changed in the future)
 
 * LSTM Parameters = $4\cdot(\text{LSTM_units})\cdot(\text{LSTM_units}+\text{num_features}+1))=4(256(256+3+3))=266240$
 
