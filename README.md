@@ -42,7 +42,9 @@ history = lstm_model.fit(x_train,y_train, epochs=30, validation_data=(x_test,y_t
 * num_features = 3 (x,y,z)
 * LSTM_units = 256 (But can be changed in the future)
 
-* LSTM Parameters = \\[ 4\cdot(\text{LSTM_units})\cdot(\text{LSTM_units}+\text{num_features}+1))=4(256(256+3+3))=266240 \\]
+* LSTM Parameters = 4(LSTM_units)(LSTM_units+num_features+1=4(256(256+3+3))=266240 
+* Dense Parameters = num_features(LSTM_units+1)=3(256+1)=771
+* Total Parameters = 266240+771=267011
 
 
 ## Results 
