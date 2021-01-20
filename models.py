@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf 
+import matplotlib.pyplot as plt
 import keras 
 from scipy.integrate import odeint
 from sklearn.model_selection import train_test_split
@@ -24,7 +25,10 @@ class Data:
         x_data = np.array([self.datapoints[i+start_id:i+start_id+time_steps_per_batch] for i in range(num_time_steps) ])
         y_data = np.array([self.datapoints[i+start_id+1:i+start_id+time_steps_per_batch+1]-self.datapoints[i+start_id:i+start_id+time_steps_per_batch]for i in range(num_time_steps)])
         x_train,x_test,y_train,y_test = train_test_split(x_data,y_data,test_size=0.2,shuffle=False)
-        return x_train,x_test,y_train,y_test
+        self.x_train = x_train
+        self.x_test = x_test
+        self.y_train = y_train
+        self.y_test = y_test
 
 class LSTM: 
     "Constructor class for all LSTM"
@@ -47,9 +51,9 @@ class LSTM:
         self.model = model
 
 
-    def fit_model(self, epochs, Data):
+    def fit_model(self, epochs, DATA):
         self.epochs = epochs
-        self.model.fit(Data[0],Data[2], epochs=epochs, validation_data=(Data[1],Data[3]))
+        self.model.fit(DATA.x_train,DATA.y_train, epochs=epochs, validation_data=(DATA.x_test,DATA.y_test))
     
     def print_stats(self):
         print(self.epochs)
@@ -58,25 +62,49 @@ class LSTM:
 
 class States:
     "Classs to create data and unperturbed as well as perturbed states"
-    def __init__(self,model,num_loops,trans=400):   
-        pass
+    def __init__(self,num_loops,start_index,trans=400):  
+        self.num_loops = num_loops
+        self.trans = trans 
+        self.start_index = start_index
 
-    def teach_lstm(data,start_index,model,trans=400):
-        for i in range(trans):
-            model.predict(tf.expand_dims(tf.expand_dims(data[start_index-trans+i],0),0))
+    def teach_lstm(self,DATA):
+        for i in range(self.trans):
+            model.predict(tf.expand_dims(tf.expand_dims(DATA.datapoints[start_index-self.trans+i],0),0))
         return None
 
-    def close_loop(data,num_loops,model,start_index,trans=400):
-        teach_lstm(data,start_index,model,trans)
-        old_state = tf.expand_dims(tf.expand_dims(data[start_index],0),0)
+    def crete_unperturbed(self,LSTM,DATA):
+        old_state = tf.expand_dims(tf.expand_dims(DATA.datapoints[self.start_index],0),0)
         predicted_states = []
-        for i in range(num_loops):
-            new_state = model.predict(old_state)+old_state
+        for i in range(self.num_loops):
+            new_state = LSTM.model.predict(old_state)+old_state
             old_state = new_state
             predicted_states.append(np.squeeze(np.squeeze(old_state,0),0))
-        return np.array(predicted_states)
+        self.unperturbed = np.array(predicted_states)
+    
+    def crete_pertrurbed(self,LSTM,DATA,perturbation = [1e-7,0,0]):
+        old_state = tf.expand_dims(tf.expand_dims(DATA.datapoints[self.start_index]+perturbation,0),0)
+        predicted_states = []
+        for i in range(self.num_loops):
+            new_state = LSTM.model.predict(old_state)+old_state
+            old_state = new_state
+            predicted_states.append(np.squeeze(np.squeeze(old_state,0),0))
+        self.perturbed = np.array(predicted_states)
+
 
 class Lyapunov: 
     "Plot the lyapunov exponent for a set LSTM"
-    def __init__(self,data,model):
+    def __init__(self):
         pass
+
+    def calculate_difference(self,States):
+        self.difference = np.linalg.norm(States.unperturbed-States.perturbed, axis=1)
+        self.log_difference = np.log(self.difference)
+
+    def plot_exponent(self,States):
+        self.calculate_difference(States)
+        plt.plot(self.log_difference,'r')
+        plt.xlabel('Time')
+        plt.ylabel('$\log{d}$')
+        plt.title('Log difference plot between the purturbed and unperturbed systems')
+        plt.legend()
+        plt.show()
