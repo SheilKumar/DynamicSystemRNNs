@@ -9,7 +9,6 @@ from sklearn.model_selection import train_test_split
 
 class Data:
     "Constructor class for training and testing data"
-
     def __init__(self,state0,num_points,delta_t,rho=28,sigma=10,beta=8.0/3.0,): 
         self.state0 = state0
         self.sigma = sigma
@@ -33,6 +32,7 @@ class Data:
 class LSTM: 
     "Constructor class for all LSTM"
     def __init__(self,neurons_lstm,neurons_dense,loss_fnc=tf.losses.MeanSquaredError() ,optimizer=tf.optimizers.Adam(),metrics=tf.metrics.MeanAbsoluteError()):
+        "Constructor class for all LSTM"
         self.neurons_lstm = neurons_lstm
         self.neurons_dense = neurons_dense
         self.loss_fnc=loss_fnc
@@ -56,7 +56,12 @@ class LSTM:
         self.model.fit(DATA.x_train,DATA.y_train, epochs=epochs, validation_data=(DATA.x_test,DATA.y_test))
     
     def print_stats(self):
-        print(self.epochs)
+        print(f"Number of LSTM units:    {self.neurons_lstm}")
+        print(f"Number of Dense neurons: {self.neurons_dense}")
+        print(f"Loss Function:           {str(self.loss_fnc)}")
+        print(f"Optimizer:               {str(self.optimizer)}")
+        print(f"Metrics:                 {str(self.metrics)}")
+        print(f"Number of Epochs:        {self.epochs}")
 
 
 
@@ -72,7 +77,7 @@ class States:
             model.predict(tf.expand_dims(tf.expand_dims(DATA.datapoints[start_index-self.trans+i],0),0))
         return None
 
-    def crete_unperturbed(self,LSTM,DATA):
+    def create_unperturbed(self,LSTM,DATA):
         old_state = tf.expand_dims(tf.expand_dims(DATA.datapoints[self.start_index],0),0)
         predicted_states = []
         for i in range(self.num_loops):
@@ -81,7 +86,7 @@ class States:
             predicted_states.append(np.squeeze(np.squeeze(old_state,0),0))
         self.unperturbed = np.array(predicted_states)
     
-    def crete_pertrurbed(self,LSTM,DATA,perturbation = [1e-7,0,0]):
+    def create_pertrurbed(self,LSTM,DATA,perturbation = [1e-7,0,0]):
         old_state = tf.expand_dims(tf.expand_dims(DATA.datapoints[self.start_index]+perturbation,0),0)
         predicted_states = []
         for i in range(self.num_loops):
@@ -93,7 +98,8 @@ class States:
 
 class Lyapunov: 
     "Plot the lyapunov exponent for a set LSTM"
-    def __init__(self):
+    def __init__(self,States):
+        self.calculate_difference(States)     
         pass
 
     def calculate_difference(self,States):
@@ -101,10 +107,10 @@ class Lyapunov:
         self.log_difference = np.log(self.difference)
 
     def plot_exponent(self,States):
-        self.calculate_difference(States)
-        plt.plot(self.log_difference,'r')
-        plt.xlabel('Time')
-        plt.ylabel('$\log{d}$')
-        plt.title('Log difference plot between the purturbed and unperturbed systems')
-        plt.legend()
-        plt.show()
+        fig, ax = plt.subplots()
+        ax.plot(self.log_difference,'r')
+        ax.set_xlabel('Time')
+        ax.set_ylabel('$\log{d}$')
+        ax.set_title('Log difference plot between the purturbed and unperturbed systems')
+        ax.legend()
+        plt.show()  
