@@ -20,7 +20,7 @@ class Data:
         x, y, z = state  # Unpack the state vector
         return self.sigma * (y - x), x * (self.rho - z) - y, x * y - self.beta * z  # 
 
-    def getData(self,num_time_steps=16000, time_steps_per_batch=1,start_id=1):
+    def getData(self,num_time_steps=16000, time_steps_per_batch=1,start_id=3000):
         x_data = np.array([self.datapoints[i+start_id:i+start_id+time_steps_per_batch] for i in range(num_time_steps) ])
         y_data = np.array([self.datapoints[i+start_id+1:i+start_id+time_steps_per_batch+1]-self.datapoints[i+start_id:i+start_id+time_steps_per_batch]for i in range(num_time_steps)])
         x_train,x_test,y_train,y_test = train_test_split(x_data,y_data,test_size=0.2,shuffle=False)
@@ -86,7 +86,7 @@ class States:
             predicted_states.append(np.squeeze(np.squeeze(old_state,0),0))
         self.unperturbed = np.array(predicted_states)
     
-    def create_pertrurbed(self,LSTM,DATA,perturbation = [1e-7,0,0]):
+    def create_perturbed(self,LSTM,DATA,perturbation = [1e-7,0,0]):
         old_state = tf.expand_dims(tf.expand_dims(DATA.datapoints[self.start_index]+perturbation,0),0)
         predicted_states = []
         for i in range(self.num_loops):
@@ -105,12 +105,17 @@ class Lyapunov:
     def calculate_difference(self,States):
         self.difference = np.linalg.norm(States.unperturbed-States.perturbed, axis=1)
         self.log_difference = np.log(self.difference)
+        self.intercept = self.log_difference[0]
 
-    def plot_exponent(self,States):
-        fig, ax = plt.subplots()
-        ax.plot(self.log_difference,'r')
-        ax.set_xlabel('Time')
-        ax.set_ylabel('$\log{d}$')
-        ax.set_title('Log difference plot between the purturbed and unperturbed systems')
-        ax.legend()
-        plt.show()  
+    def plot_exponent(self,ax,gradient):
+        axes = ax
+        axes.plot(self.log_difference,'r')
+        axes.plot(gradient*np.linspace(0,2500,2500)-np.absolute(self.intercept),'b')
+        axes.set_xlabel('Time')
+        axes.set_ylabel('$\log{d}$')
+        axes.set_title('Log difference plot between the purturbed and unperturbed systems')
+        axes.legend()
+        return axes   
+
+    def set_intercept(self,intercept):
+        self.intercept = intercept
