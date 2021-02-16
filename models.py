@@ -99,6 +99,7 @@ class States:
 class Lyapunov: 
     "Plot the lyapunov exponent for a set LSTM"
     def __init__(self,States):
+        self.States = States 
         self.calculate_difference(States)     
         pass
 
@@ -109,8 +110,8 @@ class Lyapunov:
 
     def plot_exponent(self,ax,gradient):
         axes = ax
-        axes.plot(self.log_difference,'r')
-        axes.plot(gradient*np.linspace(0,2500,2500)-np.absolute(self.intercept),'b')
+        axes.plot(np.linspace(0,self.States.num_loops/100,self.States.num_loops),self.log_difference,'r')
+        axes.plot(gradient*np.linspace(0,20,20)-np.absolute(self.intercept),'b')
         axes.set_xlabel('Time')
         axes.set_ylabel('$\log{d}$')
         axes.set_title('Log difference plot between the purturbed and unperturbed systems')
