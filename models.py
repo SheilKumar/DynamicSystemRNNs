@@ -20,19 +20,22 @@ class Data:
         x, y, z = state  # Unpack the state vector
         return self.sigma * (y - x), x * (self.rho - z) - y, x * y - self.beta * z  # 
 
-    def getData(self,num_time_steps=16000, time_steps_per_batch=1,start_id=3000):
-        self.x_data = np.array([self.datapoints[i+start_id:i+start_id+time_steps_per_batch] for i in range(num_time_steps)])
-        self.y_data = np.array([self.datapoints[i+start_id+1:i+start_id+time_steps_per_batch+1]-self.datapoints[i+start_id:i+start_id+time_steps_per_batch]for i in range(num_time_steps)])
+    def getData(self,num_time_steps=32000, time_steps_per_batch=100,start_id=3000):
+        self.x_data = np.array([self.datapoints[int(i*time_steps_per_batch)+start_id:int((i+1)*time_steps_per_batch)+start_id] for i in range(int(num_time_steps/time_steps_per_batch))])
+        self.y_data = np.array([self.datapoints[int(i*time_steps_per_batch)+start_id+1:int((i+1)*time_steps_per_batch)+start_id+1]-self.datapoints[int(i*time_steps_per_batch)+start_id:int((i+1)*time_steps_per_batch)+start_id]for i in range(int(num_time_steps/time_steps_per_batch))])
         x_train,x_test,y_train,y_test = train_test_split(self.x_data,self.y_data,test_size=0.2,shuffle=False)
         self.x_train = x_train
         self.x_test = x_test
         self.y_train = y_train
         self.y_test = y_test
+        self.batch_size = int(num_time_steps/time_steps_per_batch)
+        self.time_steps = time_steps_per_batch
 
 class LSTM: 
     "Constructor class for all LSTM"
-    def __init__(self,neurons_lstm,neurons_dense,epochs,loss_fnc=tf.losses.MeanSquaredError() ,optimizer=tf.optimizers.Adam(),metrics=tf.metrics.MeanAbsoluteError()):
+    def __init__(self,Data,neurons_lstm,epochs,neurons_dense=3,loss_fnc=tf.losses.MeanSquaredError() ,optimizer=tf.optimizers.Adam(),metrics=tf.metrics.MeanAbsoluteError()):
         "Constructor class for all LSTM"
+        self.Data = Data
         self.neurons_lstm = neurons_lstm
         self.neurons_dense = neurons_dense
         self.loss_fnc=loss_fnc
@@ -48,7 +51,7 @@ class LSTM:
     
     def create_model(self):
         model = tf.keras.models.Sequential([
-            tf.keras.layers.LSTM(self.neurons_lstm, return_sequences=True),
+            tf.keras.layers.LSTM(self.neurons_lstm, return_sequences=True, stateful=True, batch_input_shape = (self.Data.batch_size,self.Data.time_steps,3)),
             tf.keras.layers.Dense(self.neurons_dense)
         ])
         model.compile(loss=self.loss_fnc,
@@ -56,13 +59,18 @@ class LSTM:
                       metrics  = ['accuracy'])
         self.model = model
 
-
-    def fit_model(self, DATA):
-        self.model.fit(DATA.x_train,DATA.y_train, 
+        
+        
+    def fit_model(self):
+        self.model.fit(self.Data.x_train,self.Data.y_train, 
                        epochs=self.epochs, 
-                       validation_data=(DATA.x_test,DATA.y_test),
+                       batch_size = int(self.Data.batch_size),
+                       validation_data=(self.Data.x_test,self.Data.y_test),
                        callbacks=[self.cp_callback])
     
+    def load_model(self):
+        model.load_weights(checkpoint_path)
+        
     def print_stats(self):
         print(f"Number of LSTM units:    {self.neurons_lstm}")
         print(f"Number of Dense neurons: {self.neurons_dense}")
