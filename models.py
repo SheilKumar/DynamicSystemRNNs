@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf 
+import os
 import matplotlib.pyplot as plt
-import keras 
 from scipy.integrate import odeint
 from sklearn.model_selection import train_test_split
 
@@ -15,15 +15,15 @@ class Data:
         self.rho = rho
         self.beta = beta
         self.datapoints = odeint(self.f,state0,np.arange(0,delta_t*num_points,delta_t))
-
+        
     def f(self,state, t):
         x, y, z = state  # Unpack the state vector
         return self.sigma * (y - x), x * (self.rho - z) - y, x * y - self.beta * z  # 
 
     def getData(self,num_time_steps=16000, time_steps_per_batch=1,start_id=3000):
-        x_data = np.array([self.datapoints[i+start_id:i+start_id+time_steps_per_batch] for i in range(num_time_steps) ])
-        y_data = np.array([self.datapoints[i+start_id+1:i+start_id+time_steps_per_batch+1]-self.datapoints[i+start_id:i+start_id+time_steps_per_batch]for i in range(num_time_steps)])
-        x_train,x_test,y_train,y_test = train_test_split(x_data,y_data,test_size=0.2,shuffle=False)
+        self.x_data = np.array([self.datapoints[i+start_id:i+start_id+time_steps_per_batch] for i in range(num_time_steps)])
+        self.y_data = np.array([self.datapoints[i+start_id+1:i+start_id+time_steps_per_batch+1]-self.datapoints[i+start_id:i+start_id+time_steps_per_batch]for i in range(num_time_steps)])
+        x_train,x_test,y_train,y_test = train_test_split(self.x_data,self.y_data,test_size=0.2,shuffle=False)
         self.x_train = x_train
         self.x_test = x_test
         self.y_train = y_train
@@ -31,29 +31,37 @@ class Data:
 
 class LSTM: 
     "Constructor class for all LSTM"
-    def __init__(self,neurons_lstm,neurons_dense,loss_fnc=tf.losses.MeanSquaredError() ,optimizer=tf.optimizers.Adam(),metrics=tf.metrics.MeanAbsoluteError()):
+    def __init__(self,neurons_lstm,neurons_dense,epochs,loss_fnc=tf.losses.MeanSquaredError() ,optimizer=tf.optimizers.Adam(),metrics=tf.metrics.MeanAbsoluteError()):
         "Constructor class for all LSTM"
         self.neurons_lstm = neurons_lstm
         self.neurons_dense = neurons_dense
         self.loss_fnc=loss_fnc
         self.optimizer=optimizer
         self.metrics = metrics
-        self.epochs = 0
+        self.epochs = epochs
+        self.checkpoint_path = "training_checkpoints/"+str(self.neurons_lstm) + "LSTM_Neurons" + str(self.epochs) + "Epochs.ckpt"
+        self.checkpoint_dir = os.path.dirname(self.checkpoint_path)
+        self.cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=self.checkpoint_path,
+                                                           save_weights_only=True,
+                                                           verbose=1)
+        self.create_model()
     
     def create_model(self):
-        model = keras.models.Sequential([
-            keras.layers.LSTM(self.neurons_lstm, return_sequences=True),
-            keras.layers.Dense(self.neurons_dense)
+        model = tf.keras.models.Sequential([
+            tf.keras.layers.LSTM(self.neurons_lstm, return_sequences=True),
+            tf.keras.layers.Dense(self.neurons_dense)
         ])
         model.compile(loss=self.loss_fnc,
                       optimizer=self.optimizer,
-                      metrics=self.metrics)
+                      metrics  = ['accuracy'])
         self.model = model
 
 
-    def fit_model(self, epochs, DATA):
-        self.epochs = epochs
-        self.model.fit(DATA.x_train,DATA.y_train, epochs=epochs, validation_data=(DATA.x_test,DATA.y_test))
+    def fit_model(self, DATA):
+        self.model.fit(DATA.x_train,DATA.y_train, 
+                       epochs=self.epochs, 
+                       validation_data=(DATA.x_test,DATA.y_test),
+                       callbacks=[self.cp_callback])
     
     def print_stats(self):
         print(f"Number of LSTM units:    {self.neurons_lstm}")
