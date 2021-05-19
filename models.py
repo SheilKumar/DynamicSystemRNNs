@@ -43,7 +43,7 @@ class Data:
         self.y_train = tf.convert_to_tensor(y_train)
         self.y_test = tf.convert_to_tensor(y_test)
         self.time_steps = num_time_steps
-        self.batch_size = batch_size
+        self.batch_size = self.computeHCF(self.x_train.shape[0],self.x_test.shape[0])
         self.prediction_data_listen = tf.reshape(
             tf.convert_to_tensor(
                 np.array([self.datapoints[num_time_steps*batch_size+start_id\
