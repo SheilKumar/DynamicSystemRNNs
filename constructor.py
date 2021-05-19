@@ -63,4 +63,12 @@ class Constructor:
 
     def predict(self):
         self.model(self.Data.prediction_data_listen)
-        return self.model.predict(self.Data.prediction_x_data)
+        predicted_states = []
+        old_state = tf.expand_dims(self.Data.prediction_x_data[0],axis=0)
+        for i in range(self.Data.num_predictions):
+            new_state = old_state+self.model.predict(old_state)
+            old_state = new_state
+            predicted_states.append(np\
+                                   .squeeze(np.squeeze(old_state,0),0))
+        self.pred_y_hat = np.array(predicted_states)
+        
