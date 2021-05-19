@@ -18,19 +18,17 @@ class Evaluate:
         
 class Predict:
     def __init__(self,Data,lstm_neurons,epochs,dense_neurons=3):
-        self.Data = Data
-        self.lstm = LSTM(lstm_neurons,dense_neurons,epochs)
-        self.lstm.create_model()
-        self.lstm.fit_model(Data)
+        self.lstm = LSTM(Data,lstm_neurons,epochs)
+        self.lstm.fit_model(False)
         self.PredStates()
         print(self.unperturbed.shape)
     
         
     def PredStates(self):
-        old_state = tf.expand_dims(tf.expand_dims(self.Data.datapoints[20000],0),0)
+        old_state = tf.expand_dims(self.lstm.Data.datapoints[200000:200000+self.lstm.Data.time_steps],0)
         predicted_states = []
         for i in range(300):
-            new_state = self.lstm.model.predict(old_state)+old_state
+            new_state = self.lstm.model.predict(old_state, batch_size=self.lstm.Data.batch_size)+old_state
             old_state = new_state
             predicted_states.append(np.squeeze(np.squeeze(old_state,0),0))
         self.unperturbed = np.array(predicted_states)

@@ -19,8 +19,19 @@ class Data:
     def f(self,state, t):
         x, y, z = state  # Unpack the state vector
         return self.sigma * (y - x), x * (self.rho - z) - y, x * y - self.beta * z  # 
+    
+    def computeHCF(self, x, y):
+        if x > y:
+            smaller = y
+        else:
+            smaller = x
+        for i in range(1, smaller+1):
+            if((x % i == 0) and (y % i == 0)):
+                hcf = i
 
-    def getData(self,num_time_steps=32000, time_steps_per_batch=100,start_id=3000):
+        return hcf
+
+    def getData(self,num_time_steps=32*1000*4, time_steps_per_batch=100,start_id=3000):
         self.x_data = np.array([self.datapoints[int(i*time_steps_per_batch)+start_id:int((i+1)*time_steps_per_batch)+start_id] for i in range(int(num_time_steps/time_steps_per_batch))])
         self.y_data = np.array([self.datapoints[int(i*time_steps_per_batch)+start_id+1:int((i+1)*time_steps_per_batch)+start_id+1]-self.datapoints[int(i*time_steps_per_batch)+start_id:int((i+1)*time_steps_per_batch)+start_id]for i in range(int(num_time_steps/time_steps_per_batch))])
         x_train,x_test,y_train,y_test = train_test_split(self.x_data,self.y_data,test_size=0.2,shuffle=False)
@@ -28,8 +39,10 @@ class Data:
         self.x_test = x_test
         self.y_train = y_train
         self.y_test = y_test
-        self.batch_size = int(num_time_steps/time_steps_per_batch)
         self.time_steps = time_steps_per_batch
+        self.batch_size = self.computeHCF(self.x_train.shape[0],self.x_test.shape[0])
+        
+
 
 class LSTM: 
     "Constructor class for all LSTM"
@@ -51,7 +64,7 @@ class LSTM:
     
     def create_model(self):
         model = tf.keras.models.Sequential([
-            tf.keras.layers.LSTM(self.neurons_lstm, return_sequences=True, stateful=True, batch_input_shape = (self.Data.batch_size,self.Data.time_steps,3)),
+            tf.keras.layers.LSTM(self.neurons_lstm, return_sequences=True, stateful=True, batch_input_shape = (self.Data.batch_size,None,3)),
             tf.keras.layers.Dense(self.neurons_dense)
         ])
         model.compile(loss=self.loss_fnc,
@@ -61,12 +74,24 @@ class LSTM:
 
         
         
-    def fit_model(self):
-        self.model.fit(self.Data.x_train,self.Data.y_train, 
-                       epochs=self.epochs, 
-                       batch_size = int(self.Data.batch_size),
-                       validation_data=(self.Data.x_test,self.Data.y_test),
-                       callbacks=[self.cp_callback])
+    def fit_model(self,stateful=True):
+        if stateful:
+            for i in range(self.epochs):
+                print('Epoch', i +1,'/', self.epochs)
+                self.model.fit(self.Data.x_train,self.Data.y_train, 
+                               epochs=1, 
+                               validation_data=(self.Data.x_test,self.Data.y_test),
+                               batch_size = int(self.Data.batch_size),
+                               callbacks=[self.cp_callback],
+                               shuffle=False)
+                self.model.reset_states()   
+        else:
+            self.model.fit(self.Data.x_train,self.Data.y_train, 
+               epochs=self.epochs, 
+               validation_data=(self.Data.x_test,self.Data.y_test),
+               batch_size = int(self.Data.batch_size),
+               callbacks=[self.cp_callback],
+               shuffle=False)
     
     def load_model(self):
         model.load_weights(checkpoint_path)
