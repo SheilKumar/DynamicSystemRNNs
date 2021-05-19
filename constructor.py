@@ -3,7 +3,7 @@ import tensorflow as tf
 import os
 
 class Constructor:
-    def __init__(self,Data,neurons_lstm,epochs):
+    def __init__(self,Data,neurons_lstm,epochs,baseline=True):
         self.neurons_lstm = neurons_lstm
         self.Data = Data 
         self.epochs=epochs
@@ -13,30 +13,52 @@ class Constructor:
             .callbacks\
                 .ModelCheckpoint(filepath=self.checkpoint_path,
                                 save_weights=True,
-                                verbose=1)
-        self.baseline() 
+                                verbose=2)
+        if baseline:
+            self.baseline()
+        else:
+            self.loadWeights()
 
     def baseline(self):
-        model = tf.keras.models.Sequential([
+        self.model = tf.keras.models.Sequential([
             tf.keras.layers.LSTM(
-                units=self.neurons_lstm, 
+                units=self.neurons_lstm,
+                batch_input_shape = (self.Data.batch_size,None,3),
                 return_sequences=True,
                 stateful=True
             ),
             tf.keras.layers.Dense(3)
         ])
-        model.compile(
+        self.model.compile(
             loss=tf.losses.MeanSquaredError(),
             optimizer=tf.optimizers.Adam(),
             metrics=['accuracy']
         )
-        self.model = model
     
-    @tf.function
-    def fit_model(self):
-        self.model.fit(
-            x=self.Data.x_train,
-            y=self.Data.y_train,
-            epochs=self.epochs,
-            callbacks=[self.callbacks]
+    def fitModel(self):
+        self.model.fit(x=self.Data.x_train,
+        y=self.Data.y_train,
+        batch_size = self.Data.batch_size,
+        validation_data=(self.Data.x_test,self.Data.y_test),
+        epochs=self.epochs,
+        callbacks=[self.cp_callback],
+        shuffle=False)
+
+    def loadWeights(self):
+        self.model = tf.keras.models.Sequential([
+            tf.keras.layers.LSTM(
+                units=self.neurons_lstm,
+                batch_input_shape=(1,None,3),
+                return_sequences=True,
+                stateful=True
+            ),
+            tf.keras.layers.Dense(3)
+        ])
+        self.model.compile(
+            loss=tf.losses.MeanSquaredError(),
+            optimizer=tf.optimizers.Adam(),
+            metrics=['accuracy']
         )
+        self.model.load_weights((tf\
+            .train\
+                .latest_checkpoint(self.checkpoint_dir)))

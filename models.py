@@ -31,15 +31,18 @@ class Data:
 
         return hcf
 
-    def getData(self,num_time_steps=32*1000*4, time_steps_per_batch=100,start_id=3000):
-        self.x_data = np.array([self.datapoints[int(i*time_steps_per_batch)+start_id:int((i+1)*time_steps_per_batch)+start_id] for i in range(int(num_time_steps/time_steps_per_batch))])
-        self.y_data = np.array([self.datapoints[int(i*time_steps_per_batch)+start_id+1:int((i+1)*time_steps_per_batch)+start_id+1]-self.datapoints[int(i*time_steps_per_batch)+start_id:int((i+1)*time_steps_per_batch)+start_id]for i in range(int(num_time_steps/time_steps_per_batch))])
+    def getData(self,num_time_steps=50,batch_size=32 ,start_id=3000):
+        self.x_data = np.array([self.datapoints[i+start_id:i+start_id+num_time_steps]\
+            for i in range(0,batch_size*num_time_steps,num_time_steps)])
+        diff = np.array([self.datapoints[i+start_id:i+start_id+num_time_steps]\
+            for i in range(1,batch_size*num_time_steps,num_time_steps)])
+        self.y_data = diff-self.x_data
         x_train,x_test,y_train,y_test = train_test_split(self.x_data,self.y_data,test_size=0.2,shuffle=False)
-        self.x_train = x_train
-        self.x_test = x_test
-        self.y_train = y_train
-        self.y_test = y_test
-        self.time_steps = time_steps_per_batch
+        self.x_train = tf.convert_to_tensor(x_train)
+        self.x_test = tf.convert_to_tensor(x_test)
+        self.y_train = tf.convert_to_tensor(y_train)
+        self.y_test = tf.convert_to_tensor(y_test)
+        self.time_steps = num_time_steps
         self.batch_size = self.computeHCF(self.x_train.shape[0],self.x_test.shape[0])
         
 
