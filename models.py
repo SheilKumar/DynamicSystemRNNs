@@ -31,7 +31,7 @@ class Data:
 
         return hcf
 
-    def getData(self,num_time_steps=50,batch_size=32 ,start_id=3000):
+    def getData(self,num_time_steps=50,batch_size=32 ,start_id=3000,num_predictions=150):
         self.x_data = np.array([self.datapoints[i+start_id:i+start_id+num_time_steps]\
             for i in range(0,batch_size*num_time_steps,num_time_steps)])
         diff = np.array([self.datapoints[i+start_id:i+start_id+num_time_steps]\
@@ -43,8 +43,29 @@ class Data:
         self.y_train = tf.convert_to_tensor(y_train)
         self.y_test = tf.convert_to_tensor(y_test)
         self.time_steps = num_time_steps
-        self.batch_size = self.computeHCF(self.x_train.shape[0],self.x_test.shape[0])
-        
+        self.batch_size = batch_size
+        self.prediction_data_listen = tf.reshape(
+            tf.convert_to_tensor(
+                np.array([self.datapoints[num_time_steps*batch_size+start_id\
+                    :num_time_steps*batch_size+start_id+1000]])
+            ),
+            [1,1000,3]
+        )
+        self.prediction_x_data = tf.reshape(
+            tf.convert_to_tensor(
+                np.array([self.datapoints[num_time_steps*batch_size+start_id+1000\
+                :num_time_steps*batch_size+start_id+1000+num_predictions]])
+            ),
+            [num_predictions,1,3]
+        )
+        self.prediction_diff = tf.reshape(
+            tf.convert_to_tensor(
+                np.array([self.datapoints[num_time_steps*batch_size+1+start_id+1000\
+                :num_time_steps*batch_size+start_id+1+1000+num_predictions]])
+            ),
+            [num_predictions,1,3]
+        )
+        self.prediction_y_data = self.prediction_diff-self.prediction_x_data
 
 
 class LSTM: 

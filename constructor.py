@@ -8,11 +8,11 @@ class Constructor:
         self.Data = Data 
         self.epochs=epochs
         self.checkpoint_path = "training_checkpoints/"+str(self.neurons_lstm) + "LSTM_Neurons" + str(self.epochs) + "Epochs.ckpt"
-        self.checkpoint_dir = os.path.dirname(self.checkpoint_path)
+        self.checkpoint_dir = os.path.join(self.checkpoint_path)
         self.cp_callback = tf.keras\
             .callbacks\
                 .ModelCheckpoint(filepath=self.checkpoint_path,
-                                save_weights=True,
+                                save_weights_only=True,
                                 verbose=2)
         if baseline:
             self.baseline()
@@ -59,6 +59,8 @@ class Constructor:
             optimizer=tf.optimizers.Adam(),
             metrics=['accuracy']
         )
-        self.model.load_weights((tf\
-            .train\
-                .latest_checkpoint(self.checkpoint_dir)))
+        self.model.load_weights(self.checkpoint_path)
+
+    def predict(self):
+        self.model(self.Data.prediction_data_listen)
+        return self.model.predict(self.Data.prediction_x_data)
