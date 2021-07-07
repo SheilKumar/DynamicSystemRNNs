@@ -7,6 +7,7 @@ class Constructor:
         self.neurons_lstm = neurons_lstm
         self.Data = Data 
         self.epochs=epochs
+        self.batch_size_user = batch_size_user
         self.checkpoint_path = "training_checkpoints/"+str(self.neurons_lstm) + "LSTM_Neurons" + str(self.epochs) + "Epochs.ckpt"
         self.checkpoint_dir = os.path.join(self.checkpoint_path)
         self.cp_callback = tf.keras\
@@ -15,22 +16,19 @@ class Constructor:
                                 save_weights_only=True,
                                 verbose=2)
         if baseline:
-            if batch_size_user:
-                self.baseline(batch_size_user)
-            else:
-                self.baseline()
+            self.baseline()
         else:
             self.loadWeights()
 
-    def baseline(self,batch_size_user=None):
-        if batch_size_user:
-            batch_size = batch_size_user
+    def baseline(self):
+        if self.batch_size_user:
+            batch_size_user = self.batch_size_user
         else:
-            batch_size = self.Data.batch_size
+            batch_size_user = self.Data.batch_size
         self.model = tf.keras.models.Sequential([
             tf.keras.layers.LSTM(
                 units=self.neurons_lstm,
-                batch_input_shape = [batch_size,None,3],
+                batch_input_shape = [batch_size_user,None,3],
                 return_sequences=True,
                 stateful=True
             ),
@@ -43,9 +41,13 @@ class Constructor:
         )
     
     def fitModel(self):
+        if self.batch_size_user:
+            batch_size_user = self.batch_size_user
+        else:
+            batch_size_user = self.Data.batch_size
         self.model.fit(x=self.Data.x_train,
         y=self.Data.y_train,
-        batch_size = self.Data.batch_size,
+        batch_size = batch_size_user,
         validation_data=(self.Data.x_test,self.Data.y_test),
         epochs=self.epochs,
         callbacks=[self.cp_callback],
