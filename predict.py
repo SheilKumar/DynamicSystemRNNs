@@ -2,14 +2,15 @@ from tensorflow.python.ops.array_ops import batch_gather
 from models import Data 
 from constructor import Constructor 
 import matplotlib.pyplot as plt
+import os
 
 Data = Data([1,1,1],30000,0.01)
 Data.getData(150,128,num_predictions=300)
 
 for batch_size in [32,256]:
     # Make directories to hold figures 
-    path_title = "plots_title/" + batch_size + "batch_size/"
-    path_no_title = "plots_no_title/" + batch_size + "batch_size/"
+    path_title = "plots_title/" + str(batch_size) + "batch_size/"
+    path_no_title = "plots_no_title/" + str(batch_size) + "batch_size/"
     if not os.path.exists(path_title):
         os.makedirs(path_title)
     if not os.path.exists(path_no_title):
@@ -84,7 +85,7 @@ for batch_size in [32,256]:
         #plt.show() # might need to show the plots sometimes 
 
         #Save plot to location
-        fig.savefig(path_title + epochs+"Epochs.png", bbox_inches='tight',transparent=True, dpi=1200)
+        fig.savefig(path_title + str(epochs)+"Epochs.png", bbox_inches='tight',transparent=True, dpi=1200)
         # Completely close plots to prepare next plots 
         plt.clf()
         plt.cla()
@@ -147,7 +148,7 @@ for batch_size in [32,256]:
         #plt.show() # might need to show the plots sometimes 
 
         #Save plot to location
-        fig.savefig(path_no_title + epochs +"Epochs.png", bbox_inches='tight',transparent=True, dpi=1200)
+        fig.savefig(path_no_title + str(epochs) +"Epochs.png", bbox_inches='tight',transparent=True, dpi=1200)
         # Completely close plots to prepare next plots 
         plt.clf()
         plt.cla()
