@@ -1,4 +1,3 @@
-from tensorflow.python.ops.array_ops import batch_gather
 from models import Data 
 from constructor import Constructor 
 import matplotlib.pyplot as plt
