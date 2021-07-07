@@ -8,7 +8,7 @@ class Constructor:
         self.Data = Data 
         self.epochs=epochs
         self.batch_size_user = batch_size_user
-        self.checkpoint_path = "training_checkpoints/"+str(self.neurons_lstm) + "LSTM_Neurons" + str(self.epochs) + "Epochs.ckpt"
+        self.checkpoint_path = "training_checkpoints/"+str(self.neurons_lstm) + "LSTM_Neurons" + str(self.epochs) + "Epochs.ckpt" 
         self.checkpoint_dir = os.path.join(self.checkpoint_path)
         self.cp_callback = tf.keras\
             .callbacks\
