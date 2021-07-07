@@ -33,9 +33,9 @@ class Data:
 
     def getData(self,num_time_steps=50,batch_size=32 ,start_id=3000,num_predictions=150):
         self.x_data = np.array([self.datapoints[i+start_id:i+start_id+num_time_steps]\
-            for i in range(0,batch_size*num_time_steps,num_time_steps)])
+            for i in range(0,batch_size*num_time_steps)])
         diff = np.array([self.datapoints[i+start_id:i+start_id+num_time_steps]\
-            for i in range(1,batch_size*num_time_steps+1,num_time_steps)])
+            for i in range(1,batch_size*num_time_steps+1)])
         self.y_data = diff-self.x_data
         x_train,x_test,y_train,y_test = train_test_split(self.x_data,self.y_data,test_size=0.2,shuffle=False)
         self.x_train = tf.convert_to_tensor(x_train)

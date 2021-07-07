@@ -3,7 +3,7 @@ import tensorflow as tf
 import os
 
 class Constructor:
-    def __init__(self,Data,neurons_lstm,epochs,baseline=True):
+    def __init__(self,Data,neurons_lstm,epochs,batch_size_user=None,baseline=True):
         self.neurons_lstm = neurons_lstm
         self.Data = Data 
         self.epochs=epochs
@@ -15,15 +15,22 @@ class Constructor:
                                 save_weights_only=True,
                                 verbose=2)
         if baseline:
-            self.baseline()
+            if batch_size_user:
+                self.baseline(batch_size_user)
+            else:
+                self.baseline()
         else:
             self.loadWeights()
 
-    def baseline(self):
+    def baseline(self,batch_size_user=None):
+        if batch_size_user:
+            batch_size = batch_size_user
+        else:
+            batch_size = self.Data.batch_size
         self.model = tf.keras.models.Sequential([
             tf.keras.layers.LSTM(
                 units=self.neurons_lstm,
-                batch_input_shape = (self.Data.batch_size,None,3),
+                batch_input_shape = [batch_size,None,3],
                 return_sequences=True,
                 stateful=True
             ),
@@ -48,7 +55,7 @@ class Constructor:
         self.model = tf.keras.models.Sequential([
             tf.keras.layers.LSTM(
                 units=self.neurons_lstm,
-                batch_input_shape=(1,None,3),
+                batch_input_shape=[1,None,3],
                 return_sequences=True,
                 stateful=True
             ),
