@@ -85,7 +85,7 @@ for batch_size in [32,256]:
         ##-------------------------------------------------------------------##
 
         ##-----------------------------------------------------------------##
-        # Plots with title
+        # Plots with no title
         fig,axs = plt.subplots(4,figsize=(9,4), sharex=True)
         #fig.suptitle('Network Predictions for different epochs over 300 Time Steps')
         
@@ -98,25 +98,25 @@ for batch_size in [32,256]:
 
         # Plot 1: 10 Epochs 
         axs[0].plot(Data.prediction_y_data[:,0], 'k-', label = "True Values", linewidth=2)
-        axs[0].plot(model10.pred_y_hat[:,0], "r--", label = str(lstm_units)+"10 Epochs")
+        axs[0].plot(model10.pred_y_hat[:,0], "r--", label = str(lstm_units)+" LSTM Units "+"10 Epochs")
         axs[0].legend(loc=(0,0),frameon=False,fontsize="x-small")
 
 
         # Plot 2: 15 Epochs
         axs[1].plot(Data.prediction_y_data[:,0], 'k-', label = "True Values", linewidth=2)
-        axs[1].plot(model15.pred_y_hat[:,0], "r--", label = str(lstm_units)+"15 Epochs")
+        axs[1].plot(model15.pred_y_hat[:,0], "r--", label = str(lstm_units)+" LSTM Units "+"15 Epochs")
         axs[1].legend(loc=(0,0),frameon=False,fontsize="x-small")
 
 
         # Plot 3: 20 Epochs 
         axs[2].plot(Data.prediction_y_data[:,0], 'k-', label = "True Values", linewidth=2)
-        axs[2].plot(model20.pred_y_hat[:,0], "r--", label = str(lstm_units)+"20 Epochs")
+        axs[2].plot(model20.pred_y_hat[:,0], "r--", label = str(lstm_units)+" LSTM Units "+"20 Epochs")
         axs[2].legend(loc=(0,0),frameon=False,fontsize="x-small")
 
 
         # Plot 4: 25 Epochs 
         axs[3].plot(Data.prediction_y_data[:,0], 'k-', label = "True Values", linewidth=2)
-        axs[3].plot(model25.pred_y_hat[:,0], "r--", label = str(lstm_units)+"25 Epochs")
+        axs[3].plot(model25.pred_y_hat[:,0], "r--", label = str(lstm_units)+" LSTM Units "+"25 Epochs")
         axs[3].legend(loc=(0,0),frameon=False,fontsize="x-small")
 
 
