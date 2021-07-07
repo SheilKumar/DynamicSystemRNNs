@@ -28,10 +28,7 @@ for epochs in [10,15,20,25]:
     plt.xlabel('Time Steps')
     plt.ylabel('Predicted $x$ Value')
     plt.legend()
-    plt.savefig("plots300_no_title/"+"X_Coordinate"+str(epochs)+"Epochs.png", bbox_inches='tight',transparent=True)
-    plt.clf()
-    plt.cla()
-    plt.close()
+
     
     #y-value plots
     plt.figure(figsize=(9,4),dpi=1200)
